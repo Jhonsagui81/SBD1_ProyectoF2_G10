@@ -1,0 +1,508 @@
+CREATE TABLE asignacion (
+    carnet  INTEGER NOT NULL,
+    codigo  INTEGER NOT NULL,
+    seccion VARCHAR2(2) NOT NULL,
+    anio    VARCHAR2(4) NOT NULL,
+    ciclo   VARCHAR2(50) NOT NULL,
+    zona    INTEGER NOT NULL,
+    nota    INTEGER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE asignacion
+    ADD CONSTRAINT asignacion_pk PRIMARY KEY ( anio,
+                                               ciclo,
+                                               carnet,
+                                               seccion,
+                                               codigo );
+                                        
+CREATE TABLE HistorialTransacciones (
+    ID NUMBER PRIMARY KEY,
+    FechaHora DATE,
+    TablaAfectada VARCHAR2(100),
+    Accion VARCHAR2(100)
+);
+
+
+CREATE TABLE carrera (
+    carrera INTEGER NOT NULL,
+    nombre  VARCHAR2(50) NOT NULL
+)
+LOGGING;
+
+ALTER TABLE carrera ADD CONSTRAINT carrera_pk PRIMARY KEY ( carrera );
+
+CREATE TABLE catedratico (
+    cat           INTEGER NOT NULL,
+    nombre        VARCHAR2(50) NOT NULL,
+    sueldomensual NUMBER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE catedratico ADD CONSTRAINT catedratico_pk PRIMARY KEY ( cat );
+
+CREATE TABLE curso (
+    codigo INTEGER NOT NULL,
+    nombre VARCHAR2(50) NOT NULL
+)
+LOGGING;
+
+ALTER TABLE curso ADD CONSTRAINT curso_pk PRIMARY KEY ( codigo );
+
+CREATE TABLE dia (
+    dia    INTEGER NOT NULL,
+    nombre VARCHAR2(50) NOT NULL
+)
+LOGGING;
+
+ALTER TABLE dia ADD CONSTRAINT dia_pk PRIMARY KEY ( dia );
+
+CREATE TABLE estudiante (
+    carnet          INTEGER NOT NULL,
+    nombre          VARCHAR2(50) NOT NULL,
+    fechanacimiento DATE
+)
+LOGGING;
+
+ALTER TABLE estudiante ADD CONSTRAINT estudiante_pk PRIMARY KEY ( carnet );
+
+CREATE TABLE horario (
+    seccion              VARCHAR2(2) NOT NULL,
+    anio                 VARCHAR2(4) NOT NULL,
+    ciclo                VARCHAR2(50) NOT NULL,
+    periodo              INTEGER NOT NULL,
+    dia                  INTEGER NOT NULL,
+    edificio             VARCHAR2(10),
+    salon                VARCHAR2(10),
+    seccion_curso_codigo INTEGER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE horario
+    ADD CONSTRAINT horario_pk PRIMARY KEY ( seccion,
+                                            anio,
+                                            ciclo,
+                                            periodo,
+                                            dia,
+                                            seccion_curso_codigo );
+
+CREATE TABLE inscrito (
+    carrera          INTEGER NOT NULL,
+    carnet           INTEGER NOT NULL,
+    fechainscripcion DATE NOT NULL
+)
+LOGGING;
+
+ALTER TABLE inscrito ADD CONSTRAINT inscrito_pk PRIMARY KEY ( carrera,
+                                                              carnet );
+
+CREATE TABLE pensum (
+    curso_codigo    INTEGER NOT NULL,
+    plan            VARCHAR2(10) NOT NULL,
+    carrera         INTEGER NOT NULL,
+    obligatiedad    CHAR(1) NOT NULL,
+    numcreditos     INTEGER NOT NULL,
+    notaaprobatoria INTEGER NOT NULL,
+    zonaminima      INTEGER NOT NULL,
+    credprerreq     INTEGER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE pensum
+    ADD CONSTRAINT pensum_pk PRIMARY KEY ( plan,
+                                           carrera,
+                                           curso_codigo );
+
+CREATE TABLE periodo (
+    periodo    INTEGER NOT NULL,
+    horainicio DATE NOT NULL,
+    horafinal  DATE NOT NULL
+)
+LOGGING;
+
+ALTER TABLE periodo ADD CONSTRAINT periodo_pk PRIMARY KEY ( periodo );
+
+CREATE TABLE plan (
+    plan              VARCHAR2(10) NOT NULL,
+    carrera           INTEGER NOT NULL,
+    nombre            VARCHAR2(50) NOT NULL,
+    anioinicial       VARCHAR2(4) NOT NULL,
+    aniofinal         VARCHAR2(4) NOT NULL,
+    cicloinicial      VARCHAR2(50) NOT NULL,
+    ciclofinal        VARCHAR2(50) NOT NULL,
+    numcreditoscierre INTEGER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE plan ADD CONSTRAINT plan_pk PRIMARY KEY ( plan,
+                                                      carrera );
+
+CREATE TABLE prerreq (
+    curso_codigo   INTEGER NOT NULL,
+    pensum_plan    VARCHAR2(10) NOT NULL,
+    pensum_carrera INTEGER NOT NULL,
+    prerreq        INTEGER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE prerreq
+    ADD CONSTRAINT prerreq_pk PRIMARY KEY ( curso_codigo,
+                                            pensum_plan,
+                                            pensum_carrera,
+                                            prerreq );
+
+CREATE TABLE salon (
+    edificio  VARCHAR2(10) NOT NULL,
+    salon     VARCHAR2(10) NOT NULL,
+    capacidad INTEGER NOT NULL
+)
+LOGGING;
+
+ALTER TABLE salon ADD CONSTRAINT salon_pk PRIMARY KEY ( edificio,
+                                                        salon );
+
+CREATE TABLE seccion (
+    seccion      VARCHAR2(2) NOT NULL,
+    anio         VARCHAR2(4) NOT NULL,
+    ciclo        VARCHAR2(50) NOT NULL,
+    curso_codigo INTEGER NOT NULL,
+    cat          INTEGER
+)
+LOGGING;
+
+ALTER TABLE seccion
+    ADD CONSTRAINT seccion_pk PRIMARY KEY ( seccion,
+                                            anio,
+                                            ciclo,
+                                            curso_codigo );
+
+ALTER TABLE asignacion
+    ADD CONSTRAINT asignacion_estudiante_fk FOREIGN KEY ( carnet )
+        REFERENCES estudiante ( carnet )
+    NOT DEFERRABLE;
+
+ALTER TABLE asignacion
+    ADD CONSTRAINT asignacion_seccion_fk FOREIGN KEY ( seccion,
+                                                       anio,
+                                                       ciclo,
+                                                       codigo )
+        REFERENCES seccion ( seccion,
+                             anio,
+                             ciclo,
+                             curso_codigo )
+    NOT DEFERRABLE;
+
+ALTER TABLE horario
+    ADD CONSTRAINT horario_dia_fk FOREIGN KEY ( dia )
+        REFERENCES dia ( dia )
+    NOT DEFERRABLE;
+
+ALTER TABLE horario
+    ADD CONSTRAINT horario_periodo_fk FOREIGN KEY ( periodo )
+        REFERENCES periodo ( periodo )
+    NOT DEFERRABLE;
+
+ALTER TABLE horario
+    ADD CONSTRAINT horario_salon_fk FOREIGN KEY ( edificio,
+                                                  salon )
+        REFERENCES salon ( edificio,
+                           salon )
+    NOT DEFERRABLE;
+
+ALTER TABLE horario
+    ADD CONSTRAINT horario_seccion_fk FOREIGN KEY ( seccion,
+                                                    anio,
+                                                    ciclo,
+                                                    seccion_curso_codigo )
+        REFERENCES seccion ( seccion,
+                             anio,
+                             ciclo,
+                             curso_codigo )
+    NOT DEFERRABLE;
+
+ALTER TABLE inscrito
+    ADD CONSTRAINT inscrito_carrera_fk FOREIGN KEY ( carrera )
+        REFERENCES carrera ( carrera )
+    NOT DEFERRABLE;
+
+ALTER TABLE inscrito
+    ADD CONSTRAINT inscrito_estudiante_fk FOREIGN KEY ( carnet )
+        REFERENCES estudiante ( carnet )
+    NOT DEFERRABLE;
+
+ALTER TABLE pensum
+    ADD CONSTRAINT pensum_curso_fk FOREIGN KEY ( curso_codigo )
+        REFERENCES curso ( codigo )
+    NOT DEFERRABLE;
+
+ALTER TABLE pensum
+    ADD CONSTRAINT pensum_plan_fk FOREIGN KEY ( plan,
+                                                carrera )
+        REFERENCES plan ( plan,
+                          carrera )
+    NOT DEFERRABLE;
+
+ALTER TABLE plan
+    ADD CONSTRAINT plan_carrera_fk FOREIGN KEY ( carrera )
+        REFERENCES carrera ( carrera )
+    NOT DEFERRABLE;
+
+ALTER TABLE prerreq
+    ADD CONSTRAINT prerreq_curso_fk FOREIGN KEY ( curso_codigo )
+        REFERENCES curso ( codigo )
+    NOT DEFERRABLE;
+
+ALTER TABLE prerreq
+    ADD CONSTRAINT prerreq_pensum_fk FOREIGN KEY ( pensum_plan,
+                                                   pensum_carrera,
+                                                   prerreq )
+        REFERENCES pensum ( plan,
+                            carrera,
+                            curso_codigo )
+    NOT DEFERRABLE;
+
+ALTER TABLE seccion
+    ADD CONSTRAINT seccion_catedratico_fk FOREIGN KEY ( cat )
+        REFERENCES catedratico ( cat )
+    NOT DEFERRABLE;
+
+ALTER TABLE seccion
+    ADD CONSTRAINT seccion_curso_fk FOREIGN KEY ( curso_codigo )
+        REFERENCES curso ( codigo )
+    NOT DEFERRABLE;
+
+-- MODIFICACIONES adicionales
+ALTER TABLE ESTUDIANTE
+ADD (
+apellido VARCHAR2(50),
+correo   VARCHAR2(50),
+telefono VARCHAR2(50),
+direccion VARCHAR2(50),
+dpi VARCHAR2(50),
+carrera INTEGER,
+plan VARCHAR2(10)
+);
+
+ALTER TABLE CATEDRATICO
+ADD(
+    apellido VARCHAR2(50),
+    fecha_nacimiento DATE,
+    correo   VARCHAR2(50),
+    telefono INTEGER,
+    direccion VARCHAR2(50),
+    dpi INTEGER,
+    fecha_registro DATE
+);
+
+ALTER TABLE SECCION
+ADD ID_SECCION NUMBER;
+
+ALTER TABLE ASIGNACION 
+ADD APROBADO NUMBER;
+
+
+-- INSERT DATA CURSO
+-- cursos de sistemas
+INSERT INTO CURSO ( codigo, nombre) VALUES (017, 'Social Humanistica');
+INSERT INTO CURSO ( codigo, nombre) VALUES (101, 'Matematica 1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (348, 'Quimica general 1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (019, 'Socual humanistica 2');
+INSERT INTO CURSO ( codigo, nombre) VALUES (103, 'Matematoca 2');
+INSERT INTO CURSO ( codigo, nombre) VALUES (147, 'Fisica basica');
+INSERT INTO CURSO ( codigo, nombre) VALUES (150, 'Fisica 1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (39, 'Deportes 1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0006, 'Idioma tecnico 1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0008, 'Idioma tecnico 2');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0772, 'Estructura Datos');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0964, 'Organizacion Compu.');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0777, 'Compiladores1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0781, 'Compiladores2');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0970, 'Redes1');
+INSERT INTO CURSO ( codigo, nombre) VALUES (2021, 'Practica');
+INSERT INTO CURSO ( codigo, nombre) VALUES (40, 'Deportes 2');
+-- curso de industriales
+INSERT INTO CURSO ( codigo, nombre) VALUES (0637, 'Diseno Industrial');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0639, 'Control de calidad');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0634, 'Ingenieria de metodos');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0620, 'Gestion ambiental');
+INSERT INTO CURSO ( codigo, nombre) VALUES (0640, 'Control de produccion');
+
+-- INSERT DATA SALON
+INSERT INTO SALON ( edificio, salon, capacidad) VALUES ('T3','311',30);
+INSERT INTO SALON ( edificio, salon, capacidad) VALUES ('T3','110',30);
+INSERT INTO SALON ( edificio, salon, capacidad) VALUES ('T1','T-II',36);
+INSERT INTO SALON ( edificio, salon, capacidad) VALUES ('T3','404',30);
+INSERT INTO SALON ( edificio, salon, capacidad) VALUES ('T3','303',30);
+INSERT INTO SALON ( edificio, salon, capacidad) VALUES ('S12','110',46);
+
+-- INSERT DATA DIA 
+INSERT INTO DIA (dia, nombre) VALUES (1,'LUNES');
+INSERT INTO DIA (dia, nombre) VALUES (2,'MARTES');
+INSERT INTO DIA (dia, nombre) VALUES (3,'MIERCOLES');
+INSERT INTO DIA (dia, nombre) VALUES (4,'JUEVES');
+INSERT INTO DIA (dia, nombre) VALUES (5,'VIERNES');
+INSERT INTO DIA (dia, nombre) VALUES (6,'SABADO');
+
+-- INSERT DATA PERIODO
+INSERT INTO PERIODO (periodo, horainicio, horafinal) VALUES (1, TO_DATE('07:10' , 'HH24:MI'), TO_DATE('09:00' , 'HH24:MI'));
+INSERT INTO PERIODO (periodo, horainicio, horafinal) VALUES (2, TO_DATE('09:00' , 'HH24:MI'), TO_DATE('11:40' , 'HH24:MI'));
+INSERT INTO PERIODO (periodo, horainicio, horafinal) VALUES (3, TO_DATE('11:40' , 'HH24:MI'), TO_DATE('12:20' , 'HH24:MI'));
+INSERT INTO PERIODO (periodo, horainicio, horafinal) VALUES (4, TO_DATE('13:10' , 'HH24:MI'), TO_DATE('15:00' , 'HH24:MI'));
+INSERT INTO PERIODO (periodo, horainicio, horafinal) VALUES (5, TO_DATE('15:10' , 'HH24:MI'), TO_DATE('17:00' , 'HH24:MI'));
+
+-- INSERT DATA CARRERA
+INSERT INTO CARRERA (carrera, nombre) VALUES (1, 'Ciencias y Sistemas');
+INSERT INTO CARRERA (carrera, nombre) VALUES (2, 'Industrial');
+INSERT INTO CARRERA (carrera, nombre) VALUES (3, 'MecanicaIndustrial');
+
+-- INSERT DATA PLAN 
+INSERT INTO PLAN (plan, carrera, nombre, anioinicial, aniofinal, cicloinicial, ciclofinal, numcreditoscierre) VALUES 
+('M', 1, 'Ciencias y Sistemas CLAR', '2022', '2026', '1S', '2S', 250 );
+
+INSERT INTO PLAN (plan, carrera, nombre, anioinicial, aniofinal, cicloinicial, ciclofinal, numcreditoscierre) VALUES 
+('M', 2, 'Industrial CLAR', '2022', '2026', '1S', '2S', 250 );
+
+INSERT INTO PLAN (plan, carrera, nombre, anioinicial, aniofinal, cicloinicial, ciclofinal, numcreditoscierre) VALUES 
+('V', 1, 'Ciencias y Sistemas CLAR', '2022', '2026', '1S', '2S', 25 );
+
+-- --------------------------------------------------------
+-- FUNCIONALIDADES INSERT 
+-- --------------------------------------------------------
+
+-- INSERTAR ESTUDIANTES
+CALL registroestudiante(
+15, --carnet
+'Luis', --nombres
+'Lizama',  --apellidos
+TO_DATE('1999-12-10', 'YYYY-MM-DD'),    --cumpleanios
+'reyeslizando@gmail.com',   --correo
+'215DS4563',    --telefono
+'GuateSDSDmala, zona 7',    --direccion
+'36345480101',  --dpi
+1, --carrera
+'M'--plan
+);
+
+-- INSERTAR CARRERAS
+CALL registrocarrera(
+'CONTADURIA' --nombre carrera
+);
+
+--INSERTAR CATEDRATICOS
+CALL registrarcatedratico(
+    3,  --id_catedratico
+    'Lady', --nombre
+    'Pedroso', --apellido
+    TO_DATE('1990-12-10', 'YYYY-MM-DD'),    --cumpleanios
+    'ladyttu@gmail.com',    --correo
+    343536,-- tel
+    'Zona 11 Guatemala',--direccion
+    54654540101,--dpi
+    5500 --salario
+);
+
+-- INSERTAR CURSO PENSUM 
+CALL CREATECOURSECURRICULUM(
+    2021, --codigo curso
+    '1', --OBLIGATORIO
+    0,   --creditos que otorga
+    61,  --nota aprobatoria   
+    36,  --zona minima
+    35,  --creditos necesarios
+    'M', --plan
+    1    --carrera
+);
+
+-- INSERTAR PRERREQUISIRO
+CALL addprerequisite(
+    40, --codigo curso
+    39, --codigo prerrequisio
+    1,   --carrera
+    'M'  --plan
+);
+
+
+-- CREACION DE SECCCION 
+CALL CREATESECTION(
+    2021,    --codigo curso
+    'S1',   --ciclo
+    2,      --codigo catedratico
+    'qm'     --seccion char(1)
+);
+
+
+-- CREACION DE HORARIO 
+CALL ADDSCHEDULE(
+    2021,    --codigo curso
+    'qm',    --seccion
+    '2024', --anio
+    'S1',   --ciclo
+    4,      --periodo id
+    2,      --dia id
+    'T3',   --edificio
+    '311'   --salon
+);
+
+-- CREACION DE ASIGNACIONES
+CALL assigncourse(
+    11, --id_SECCION
+     14  --CARNET
+);
+
+--INGRESAR NOTAS
+CALL entergrades(
+    13,    --ID_SECCION 
+    1,       --CARNET
+    49,    --ZONA
+    23 --EXAMEN FINAL
+);
+
+
+-- DESASIGNAR CURSO
+CALL unassigncourse(
+        15,    --SECCION 
+        1    --CARNET 
+);
+
+
+
+-- --------------------------------------------------------
+-- LLAMADA DE REPORTES
+-- --------------------------------------------------------
+-- consultar curso de carrera
+CALL CONSULTARPENSUM(2); --codigo carrera
+
+-- Consulta datos estudiante
+CALL CONSULTARESTUDIANTE(1); -- Carnet estudiante
+
+-- Consuta datos catedratico 
+CALL CONSULTARCATEDRATICO(2);   --Codigo catedratico
+
+-- Consultar Alumnos asignados a determinada seccion
+CALL CONSULTARASIGNACIONES(
+    17,      --CODIGO CURSO
+    'S1',    --CICLO
+    '2024',   --ANIO
+    'B'      --SECCION
+);
+
+-- Consultar horario
+CALL CONSULTARHORARIO(
+    2,      -- CARNET 
+    'S1',   --CICLO (S1, S2, VJ, VD)
+    '2024'  --ANIO
+);
+
+-- Consultar Aprobaciones
+CALL CONSULTARAPROBACIONES(
+    17,      --CODIGO CURSO
+    'S1',     --CICLO
+    '2024',  --ANIO
+    'B'
+);
+
+-- CONSULTAR CURSO SIGUIENTE SEMESTRE
+CALL CONSULTARCURSOSEMESTRE(
+    1       --CARNET
+);
+
